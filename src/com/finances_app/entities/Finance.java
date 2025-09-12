@@ -1,8 +1,11 @@
 package com.finances_app.entities;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Finance {
+public abstract class Finance implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     private LocalDate date;
     private double value;
     private String description;

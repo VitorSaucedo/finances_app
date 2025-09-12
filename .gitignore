@@ -55,5 +55,6 @@ Thumbs.db
 # It's a good practice to ignore files containing secrets or local configurations.
 # Instead, commit a template file (e.g., application.properties.example).
 *.env
+*.dat
 application.properties
 application.yml
