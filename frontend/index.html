@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+    <h1>Meu Controle Financeiro</h1>
+
+    <section class="controls">
+        <label>Período:</label>
+        <select id="month-select"></select>
+        <select id="year-select"></select>
+        <button onclick="fetchStatement()">Carregar Extrato</button>
+    </section>
+
+    <section class="statement">
+        <h2>Extrato</h2>
+        <h3>Receitas</h3>
+        <table id="incomes-table">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Fonte</th>
+                <th>Valor</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <h3>Despesas</h3>
+        <table id="expenses-table">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="balance">
+            Saldo do Período: <span id="balance">R$ 0,00</span>
+        </div>
+    </section>
+
+    <section class="add-transaction">
+        <h2>Adicionar Transação</h2>
+        <form id="transaction-form">
+            <select id="type" required>
+                <option value="expense">Despesa</option>
+                <option value="income">Receita</option>
+            </select>
+            <input type="text" id="description" placeholder="Descrição" required>
+            <input type="number" id="value" placeholder="Valor" step="0.01" required>
+            <input type="text" id="category-source" placeholder="Categoria/Fonte" required>
+            <button type="submit">Adicionar</button>
+        </form>
+    </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
