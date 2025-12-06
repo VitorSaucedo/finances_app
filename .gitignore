@@ -1,0 +1,32 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+
+# Arquivos de IDE (IntelliJ IDEA)
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Arquivos de IDE (Eclipse)
+.classpath
+.project
+.settings/
+.springBeans
+
+# Arquivos de IDE (VS Code)
+.vscode/
+
+# Logs e arquivos temporários
+*.log
+logs/
+*.pid
+
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Configurações locais de ambiente (Opcional, mas recomendado)
+.env
+secrets.properties

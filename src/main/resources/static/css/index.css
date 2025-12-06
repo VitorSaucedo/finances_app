@@ -1,0 +1,51 @@
+/* index.css */
+
+/* Animação suave ao passar o mouse nos cards */
+.card-balance {
+    transition: transform 0.2s;
+    cursor: default;
+}
+
+.card-balance:hover {
+    transform: scale(1.02);
+}
+
+/* Cores para valores monetários */
+.negative {
+    color: #dc3545; /* Vermelho Bootstrap */
+    font-weight: bold;
+}
+
+.positive {
+    color: #198754; /* Verde Bootstrap */
+    font-weight: bold;
+}
+
+/* Ajuste simples para o corpo da página */
+body {
+    background-color: #f8f9fa; /* Cinza bem claro */
+}
+
+.category-tag {
+    background-color: #e9ecef; /* Cinza bem claro */
+    color: #495057;            /* Cinza escuro para contraste */
+    border-radius: 50px;       /* Bordas totalmente arredondadas (Pill shape) */
+    padding: 4px 12px;         /* Espaçamento interno */
+    font-size: 0.85rem;        /* Fonte levemente menor */
+    font-weight: 600;          /* Negrito suave */
+    display: inline-block;     /* Necessário para o padding funcionar bem */
+    text-transform: capitalize; /* Garante que a primeira letra fique Maiúscula */
+}
+
+/* Ajuste específico para o Modo Escuro */
+[data-bs-theme="dark"] .category-tag {
+    background-color: #343a40; /* Fundo cinza escuro */
+    color: #dee2e6;            /* Texto quase branco */
+    border: 1px solid #495057; /* Borda sutil para destacar */
+}
+
+/* Garante que o fundo da página obedeça ao tema */
+[data-bs-theme="dark"] body {
+    background-color: #212529;
+}
+
