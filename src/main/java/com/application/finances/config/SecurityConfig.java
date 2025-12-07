@@ -3,6 +3,7 @@ package com.application.finances.config;
 import com.application.finances.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,16 +20,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Em produção real com React/Angular separado, usaríamos CSRF.
-                // Como é um app simples com JS puro e sessão, desabilitar simplifica,
-                // mas mantenha em mente para o futuro.
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Desabilita CSRF (comum para APIs/Mobile)
 
-                // Reforça que só o mesmo domínio pode fazer requisições (Segurança extra)
+                // Configuracao para permitir H2 Console
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login.html", "/css/**", "/js/**", "/error", "/images/**").permitAll()
+                        // Regras publicas (Naao precisa de login)
+                        .requestMatchers("/login.html", "/register.html", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+
+                        // Libera o endpoint de cadastro que criamos no AuthController
+                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -41,20 +44,20 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login.html")
-                        .deleteCookies("JSESSIONID") // Garante que a sessão morre
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
 
         return http.build();
     }
 
-    // Criptografia de senha (obrigatório)
+    // Criptografia de senha
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Serviço que busca o usuário no banco
+    // Servico que ensina o Spring Security a buscar o usario no banco
     @Bean
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> repo.findByUsername(username)
@@ -66,7 +69,7 @@ public class SecurityConfig {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // Gerenciador de Autenticação
+    // Gerenciador de Autenticacao
     @Bean
     public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();

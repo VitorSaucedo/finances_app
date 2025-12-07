@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Conta - Finanças</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/index.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { width: 100%; max-width: 400px; padding: 2rem; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card shadow login-card">
+    <h3 class="text-center mb-4">🚀 Criar Conta</h3>
+
+    <div id="feedbackAlert" class="alert d-none" role="alert"></div>
+
+    <form id="registerForm">
+        <div class="mb-3">
+            <label class="form-label">Escolha um Usuário</label>
+            <input type="text" id="username" class="form-control" placeholder="ex: vitor.silva" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Escolha uma Senha</label>
+            <input type="password" id="password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" required>
+            <div class="form-text">A senha deve ter no mínimo 6 caracteres.</div>
+        </div>
+
+        <button type="submit" id="btnSubmit" class="btn btn-success w-100 py-2">Criar Conta</button>
+    </form>
+
+    <div class="text-center mt-3">
+        <span class="text-muted">Já tem conta?</span>
+        <a href="/login.html" class="text-decoration-none fw-bold">Fazer Login</a>
+    </div>
+</div>
+
+<script src="js/register.js"></script>
+
+</body>
+</html>
