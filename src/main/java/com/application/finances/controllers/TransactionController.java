@@ -59,23 +59,47 @@ public class TransactionController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Criar nova transacao  ---
+    // --- Criar nova transacao ---
     @PostMapping
     public ResponseEntity<Void> create(@RequestBody @Valid CreateTransactionDTO data, Authentication authentication) {
         User user = getLoggedUser(authentication);
 
         Transaction newTransaction = new Transaction();
+        // Mapeia os dados do DTO para a Entidade
         newTransaction.setDescription(data.description());
         newTransaction.setAmount(data.amount());
         newTransaction.setDate(data.date());
         newTransaction.setType(data.type());
         newTransaction.setCategory(data.category());
 
-        // Vínculo obrigatório com o usuário logado
+        // Vínculo obrigatorio com o usuário logado
         newTransaction.setUser(user);
 
         service.save(newTransaction);
 
         return ResponseEntity.status(201).build();
+    }
+
+    // --- Atualizar Transação ---
+    @PutMapping("/{id}")
+    public ResponseEntity<Transaction> update(@PathVariable Long id,
+                                              @RequestBody @Valid CreateTransactionDTO data,
+                                              Authentication authentication) {
+        User user = getLoggedUser(authentication);
+
+        // Busca a transação antiga
+        Transaction transaction = service.findById(id, user);
+
+        // Atualiza os dados com o que veio do formulario
+        transaction.setDescription(data.description());
+        transaction.setAmount(data.amount());
+        transaction.setDate(data.date());
+        transaction.setType(data.type());
+        transaction.setCategory(data.category());
+
+        // Salva a atualização
+        service.save(transaction);
+
+        return ResponseEntity.ok(transaction);
     }
 }
