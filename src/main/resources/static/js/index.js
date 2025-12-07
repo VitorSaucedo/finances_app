@@ -1,4 +1,4 @@
-const API_URL = '/api/transactions';
+const API_URL = '/transactions';
 
 // Executa assim que a página carrega
 document.addEventListener("DOMContentLoaded", () => {
