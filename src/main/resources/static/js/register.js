@@ -1,3 +1,17 @@
+function getCookie(name) {
+    if (!document.cookie) {
+        return null;
+    }
+    const xsrfCookies = document.cookie.split(';')
+        .map(c => c.trim())
+        .filter(c => c.startsWith(name + '='));
+
+    if (xsrfCookies.length === 0) {
+        return null;
+    }
+    return decodeURIComponent(xsrfCookies[0].split('=')[1]);
+}
+
 document.getElementById('registerForm').addEventListener('submit', async function(event) {
     event.preventDefault(); // Impede o recarregamento da página
 
@@ -18,11 +32,12 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     feedbackAlert.classList.add('d-none');
 
     try {
-        // 3. Envia para o Backend
         const response = await fetch('/auth/register', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                // ADICIONADO: Token CSRF
+                'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
             },
             body: JSON.stringify(registerData)
         });

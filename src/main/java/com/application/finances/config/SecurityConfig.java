@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -20,16 +21,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF (comum para APIs/Mobile)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/h2-console/**")
+                )
 
-                // Configuracao para permitir H2 Console
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Regras publicas (Naao precisa de login)
-                        .requestMatchers("/login.html", "/register.html", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/login.html", "/register.html", "/css/**", "/js/**", "/images/**", "/error", "/h2-console/**").permitAll()
 
-                        // Libera o endpoint de cadastro que criamos no AuthController
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
 
                         .anyRequest().authenticated()
@@ -44,32 +45,25 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login.html")
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                         .permitAll()
                 );
 
         return http.build();
     }
 
-    // Criptografia de senha
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Servico que ensina o Spring Security a buscar o usario no banco
     @Bean
     public UserDetailsService userDetailsService(UserRepository repo) {
         return username -> repo.findByUsername(username)
-                .map(u -> org.springframework.security.core.userdetails.User
-                        .withUsername(u.getUsername())
-                        .password(u.getPassword())
-                        .roles("USER")
-                        .build())
+                .map(CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // Gerenciador de Autenticacao
     @Bean
     public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();

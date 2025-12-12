@@ -53,13 +53,19 @@ public class TransactionService {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
+        // Busca única no banco
         List<Transaction> transactions = repository.findByDateBetweenAndUserOrderByDateDesc(startDate, endDate, user);
 
-        BigDecimal income = repository.getSumByTypeAndDate(TransactionType.INCOME, startDate, endDate, user);
-        if (income == null) income = BigDecimal.ZERO;
+        // 2. Cálculos em memória
+        BigDecimal income = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal expense = repository.getSumByTypeAndDate(TransactionType.EXPENSE, startDate, endDate, user);
-        if (expense == null) expense = BigDecimal.ZERO;
+        BigDecimal expense = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal balance = income.subtract(expense);
 

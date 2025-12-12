@@ -1,5 +1,19 @@
 const API_URL = '/transactions';
 
+function getCookie(name) {
+    if (!document.cookie) {
+        return null;
+    }
+    const xsrfCookies = document.cookie.split(';')
+        .map(c => c.trim())
+        .filter(c => c.startsWith(name + '='));
+
+    if (xsrfCookies.length === 0) {
+        return null;
+    }
+    return decodeURIComponent(xsrfCookies[0].split('=')[1]);
+}
+
 // Executa assim que a página carrega
 document.addEventListener("DOMContentLoaded", () => {
     const today = new Date();
@@ -83,9 +97,16 @@ function renderDashboard(data) {
 window.deleteTransaction = async function(id) {
     if(confirm('Tem certeza que deseja excluir esta transação?')) {
         try {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            loadData(); // Recarrega a tela para atualizar saldo e tabela
+            await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    // ADICIONADO: Token CSRF
+                    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
+                }
+            });
+            loadData();
         } catch (error) {
+            console.error(error);
             alert('Erro ao excluir.');
         }
     }

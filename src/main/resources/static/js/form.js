@@ -2,6 +2,20 @@ const API_URL = '/transactions';
 const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 
+function getCookie(name) {
+    if (!document.cookie) {
+        return null;
+    }
+    const xsrfCookies = document.cookie.split(';')
+        .map(c => c.trim())
+        .filter(c => c.startsWith(name + '='));
+
+    if (xsrfCookies.length === 0) {
+        return null;
+    }
+    return decodeURIComponent(xsrfCookies[0].split('=')[1]);
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     if (id) {
         document.getElementById('formTitle').innerText = "Editar Transação";
@@ -58,17 +72,13 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
     try {
         const response = await fetch(url, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                // ADICIONADO: Token CSRF
+                'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
+            },
             body: JSON.stringify(transactionData)
         });
-
-        if (response.ok) {
-            window.location.href = 'index.html';
-        } else {
-            // Tenta ler msg de erro do backend se houver
-            const erroTexto = await response.text();
-            alert('Erro ao salvar: ' + (erroTexto || response.statusText));
-        }
     } catch (error) {
         console.error(error);
         alert('Erro de conexão.');

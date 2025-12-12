@@ -1,12 +1,12 @@
 package com.application.finances.controllers;
 
+import com.application.finances.config.CustomUserDetails;
 import com.application.finances.dtos.CreateTransactionDTO;
 import com.application.finances.dtos.MonthlySummaryDTO;
+import com.application.finances.dtos.TransactionResponseDTO;
 import com.application.finances.entities.Transaction;
 import com.application.finances.entities.User;
-import com.application.finances.exceptions.ResourceNotFoundException; // Importado
 import com.application.finances.services.TransactionService;
-import com.application.finances.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +22,9 @@ public class TransactionController {
     @Autowired
     private TransactionService service;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    // Helper: Garante que pegamos o usuário ou lançamos erro 404
     private User getLoggedUser(Authentication authentication) {
-        return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.getUser();
     }
 
     @GetMapping
@@ -43,9 +39,13 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getById(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<TransactionResponseDTO> getById(@PathVariable Long id, Authentication authentication) {
         User user = getLoggedUser(authentication);
-        return ResponseEntity.ok(service.findById(id, user));
+
+        Transaction transaction = service.findById(id, user);
+
+        // Conversão Entidade -> DTO
+        return ResponseEntity.ok(new TransactionResponseDTO(transaction));
     }
 
     @DeleteMapping("/{id}")
@@ -73,12 +73,11 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> update(@PathVariable Long id,
-                                              @RequestBody @Valid CreateTransactionDTO data,
-                                              Authentication authentication) {
+    public ResponseEntity<TransactionResponseDTO> update(@PathVariable Long id,
+                                                         @RequestBody @Valid CreateTransactionDTO data,
+                                                         Authentication authentication) {
         User user = getLoggedUser(authentication);
 
-        // O service.findById já vai validar se a transação existe e se pertence ao usuário
         Transaction transaction = service.findById(id, user);
 
         transaction.setDescription(data.description());
@@ -89,6 +88,6 @@ public class TransactionController {
 
         service.save(transaction);
 
-        return ResponseEntity.ok(transaction);
+        return ResponseEntity.ok(new TransactionResponseDTO(transaction));
     }
 }

@@ -20,11 +20,4 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // Busca por período e usuario
     List<Transaction> findByDateBetweenAndUserOrderByDateDesc(LocalDate startDate, LocalDate endDate, User user);
-
-    // Soma por tipo, data e usuario
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.type = :type AND t.date BETWEEN :startDate AND :endDate AND t.user = :user")
-    BigDecimal getSumByTypeAndDate(@Param("type") TransactionType type,
-                                   @Param("startDate") LocalDate startDate,
-                                   @Param("endDate") LocalDate endDate,
-                                   @Param("user") User user);
 }
