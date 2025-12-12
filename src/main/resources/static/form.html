@@ -63,6 +63,100 @@
 </div>
 
 <script src="js/theme.js"></script> <script src="js/form.js"></script>
+<script>
+    const API_URL = '/transactions';
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (id) {
+            document.getElementById('formTitle').innerText = "Editar Transação";
+            document.title = "Editar Transação";
+            await loadTransaction(id);
+        } else {
+            document.getElementById('date').valueAsDate = new Date();
+        }
+    });
+
+    async function loadTransaction(id) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`);
+            if (!response.ok) throw new Error("Transação não encontrada");
+
+            const t = await response.json();
+
+            document.getElementById('id').value = t.id;
+            document.getElementById('description').value = t.description;
+            document.getElementById('category').value = t.category || '';
+            document.getElementById('amount').value = t.amount;
+            document.getElementById('date').value = t.date;
+
+            if (t.type === 'INCOME') {
+                document.getElementById('typeIncome').checked = true;
+            } else {
+                document.getElementById('typeExpense').checked = true;
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao carregar dados.");
+            window.location.href = "/index.html";
+        }
+    }
+
+    document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btnSubmit = document.querySelector('button[type="submit"]');
+        const textoOriginal = btnSubmit.innerText;
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = 'Salvando...';
+
+        const id = document.getElementById('id').value;
+
+        const transactionData = {
+            description: document.getElementById('description').value,
+            category: document.getElementById('category').value,
+            amount: document.getElementById('amount').value,
+            date: document.getElementById('date').value,
+            type: document.querySelector('input[name="type"]:checked').value
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_URL}/${id}` : API_URL;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
+                },
+                body: JSON.stringify(transactionData)
+            });
+
+            if (response.ok) {
+                window.location.href = '/index.html';
+            } else {
+                const erroTexto = await response.text();
+                alert('Erro ao salvar: ' + (erroTexto || response.statusText));
+
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = textoOriginal;
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erro de conexão com o servidor.');
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = textoOriginal;
+        }
+    });
+</script>
 
 </body>
 </html>
