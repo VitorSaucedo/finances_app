@@ -74,11 +74,11 @@
             if (form) {
                 const csrfInput = document.createElement('input');
                 csrfInput.type = 'hidden';
-                csrfInput.name = 'X-XSRF-TOKEN';
+                csrfInput.name = '_csrf';
 
                 csrfInput.value = token;
                 form.appendChild(csrfInput);
-                console.log("Token CSRF injetado no formulário.");
+                console.log("Token CSRF injetado no formulário como '_csrf'.");
             }
         } else {
             console.warn("Cookie XSRF-TOKEN não encontrado. O login pode falhar.");
