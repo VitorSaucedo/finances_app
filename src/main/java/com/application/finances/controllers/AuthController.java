@@ -1,6 +1,8 @@
 package com.application.finances.controllers;
+
 import com.application.finances.dtos.RegisterUserDTO;
 import com.application.finances.entities.User;
+import com.application.finances.exceptions.BusinessException; // Importado
 import com.application.finances.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +18,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterUserDTO data) {
-        // Verifica se usuário já existe
+        // Verifica se usuário já existe e lança exceção de negócio
         if (this.repository.findByUsername(data.username()).isPresent()) {
-            return ResponseEntity.badRequest().body("Usuário já existe");
+            throw new BusinessException("Username already exists");
         }
 
-        // Criptografa a senha
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-        // Cria o usuário
         User newUser = new User();
         newUser.setUsername(data.username());
         newUser.setPassword(encryptedPassword);

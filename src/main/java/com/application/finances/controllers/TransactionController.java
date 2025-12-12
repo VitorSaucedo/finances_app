@@ -4,6 +4,7 @@ import com.application.finances.dtos.CreateTransactionDTO;
 import com.application.finances.dtos.MonthlySummaryDTO;
 import com.application.finances.entities.Transaction;
 import com.application.finances.entities.User;
+import com.application.finances.exceptions.ResourceNotFoundException; // Importado
 import com.application.finances.services.TransactionService;
 import com.application.finances.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -24,13 +25,12 @@ public class TransactionController {
     @Autowired
     private UserRepository userRepository;
 
-    // Helper: Metodo privado para pegar o usuario logado e evitar repeticao de codigo
+    // Helper: Garante que pegamos o usuário ou lançamos erro 404
     private User getLoggedUser(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    // --- Resumo Mensal ---
     @GetMapping
     public ResponseEntity<MonthlySummaryDTO> getSummary(@RequestParam(required = false) Integer year,
                                                         @RequestParam(required = false) Integer month,
@@ -38,20 +38,16 @@ public class TransactionController {
         if (year == null) year = LocalDate.now().getYear();
         if (month == null) month = LocalDate.now().getMonthValue();
 
-        User user = getLoggedUser(authentication); // Pega o usuario do token
-
-        // Passa o usuário para o servico filtrar os dados
+        User user = getLoggedUser(authentication);
         return ResponseEntity.ok(service.getMonthlySummary(year, month, user));
     }
 
-    // --- Buscar transacao por ID ---
     @GetMapping("/{id}")
     public ResponseEntity<Transaction> getById(@PathVariable Long id, Authentication authentication) {
         User user = getLoggedUser(authentication);
         return ResponseEntity.ok(service.findById(id, user));
     }
 
-    // --- Deletar transacao ---
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         User user = getLoggedUser(authentication);
@@ -59,20 +55,16 @@ public class TransactionController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Criar nova transacao ---
     @PostMapping
     public ResponseEntity<Void> create(@RequestBody @Valid CreateTransactionDTO data, Authentication authentication) {
         User user = getLoggedUser(authentication);
 
         Transaction newTransaction = new Transaction();
-        // Mapeia os dados do DTO para a Entidade
         newTransaction.setDescription(data.description());
         newTransaction.setAmount(data.amount());
         newTransaction.setDate(data.date());
         newTransaction.setType(data.type());
         newTransaction.setCategory(data.category());
-
-        // Vínculo obrigatorio com o usuário logado
         newTransaction.setUser(user);
 
         service.save(newTransaction);
@@ -80,24 +72,21 @@ public class TransactionController {
         return ResponseEntity.status(201).build();
     }
 
-    // --- Atualizar Transação ---
     @PutMapping("/{id}")
     public ResponseEntity<Transaction> update(@PathVariable Long id,
                                               @RequestBody @Valid CreateTransactionDTO data,
                                               Authentication authentication) {
         User user = getLoggedUser(authentication);
 
-        // Busca a transação antiga
+        // O service.findById já vai validar se a transação existe e se pertence ao usuário
         Transaction transaction = service.findById(id, user);
 
-        // Atualiza os dados com o que veio do formulario
         transaction.setDescription(data.description());
         transaction.setAmount(data.amount());
         transaction.setDate(data.date());
         transaction.setType(data.type());
         transaction.setCategory(data.category());
 
-        // Salva a atualização
         service.save(transaction);
 
         return ResponseEntity.ok(transaction);

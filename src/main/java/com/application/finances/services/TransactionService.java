@@ -2,8 +2,10 @@ package com.application.finances.services;
 
 import com.application.finances.dtos.MonthlySummaryDTO;
 import com.application.finances.entities.Transaction;
-import com.application.finances.entities.User; // Importante
+import com.application.finances.entities.User;
 import com.application.finances.enums.TransactionType;
+import com.application.finances.exceptions.ForbiddenException; // Importado
+import com.application.finances.exceptions.ResourceNotFoundException; // Importado
 import com.application.finances.repositories.TransactionRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,6 @@ public class TransactionService {
 
     // --- Create / Update ---
     public Transaction save(Transaction transaction) {
-        // Verificar se a transação pertence ao usuário antes de salvar.
         return repository.save(transaction);
     }
 
@@ -34,37 +35,32 @@ public class TransactionService {
     }
 
     // --- Read ---
-    // Busca pelo ID e verifica usuario logado
     public Transaction findById(Long id, User user) {
         Transaction transaction = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with ID: " + id));
 
-        // Se o dono da transacao não for o usuário passado, lanca erro
+        // Validação de segurança: Usuário só pode acessar seus próprios dados
         if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access Denied: You cannot access this transaction");
+            throw new ForbiddenException("Access Denied: You cannot access this transaction");
         }
 
         return transaction;
     }
 
-    // --- Resumo do Mes (Filtrado por Usuario) ---
+    // --- Resumo do Mes ---
     public MonthlySummaryDTO getMonthlySummary(int year, int month, User user) {
-        // Calcula primeiro e ultimo dia do mês
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
-        // Busca transações do usuario
         List<Transaction> transactions = repository.findByDateBetweenAndUserOrderByDateDesc(startDate, endDate, user);
 
-        // Busca totais do usuário
         BigDecimal income = repository.getSumByTypeAndDate(TransactionType.INCOME, startDate, endDate, user);
         if (income == null) income = BigDecimal.ZERO;
 
         BigDecimal expense = repository.getSumByTypeAndDate(TransactionType.EXPENSE, startDate, endDate, user);
         if (expense == null) expense = BigDecimal.ZERO;
 
-        // Calcula saldo
         BigDecimal balance = income.subtract(expense);
 
         return new MonthlySummaryDTO(transactions, income, expense, balance);
